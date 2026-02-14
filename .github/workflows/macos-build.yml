@@ -18,7 +18,7 @@ jobs:
             runner: macos-latest
           - architecture: amd64
             display_name: "Intel (x86_64)"
-            runner: macos-13
+            runner: macos-latest
 
     runs-on: ${{ matrix.runner }}
 

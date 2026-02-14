@@ -43,19 +43,33 @@ fi
     # Get build information
     COMMIT_HASH=$(git rev-parse --short HEAD)
     BUILD_DATE=$(date -u '+%Y-%m-%d %H:%M:%S UTC')
-    API_HOST=$(cat .env | grep API_HOST | cut -d '=' -f 2)
+    API_HOST=""
+    if [ -f .env ]; then
+        API_HOST=$(grep '^API_HOST=' .env | cut -d '=' -f 2-)
+    else
+        echo "WARN: .env not found; API_HOST will be empty."
+    fi
 
 
     ARCH_FLAG=""
     if [ -n "$BUILD_TARGET_ARCH" ]; then
+        export GOOS="darwin"
+        export CGO_ENABLED=1
+        SDKROOT=$(xcrun --sdk macosx --show-sdk-path)
+        export SDKROOT
+
         case "$BUILD_TARGET_ARCH" in
             amd64)
                 export GOARCH="amd64"
                 ARCH_FLAG="-arch x86_64"
+                export CC="xcrun --sdk macosx clang -arch x86_64"
+                export CXX="xcrun --sdk macosx clang++ -arch x86_64"
                 ;;
             arm64)
                 export GOARCH="arm64"
                 ARCH_FLAG="-arch arm64"
+                export CC="xcrun --sdk macosx clang -arch arm64"
+                export CXX="xcrun --sdk macosx clang++ -arch arm64"
                 ;;
         esac
     fi

@@ -136,7 +136,7 @@ jobs:
   sign-and-notarize:
     runs-on: macos-latest
     needs: create-universal-binary
-    if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
+    if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main' && secrets.SIGNING_CERTIFICATE_P12_DATA != '' && secrets.SIGNING_CERTIFICATE_PASSWORD != '' && secrets.APPLE_ID_USERNAME != '' && secrets.APPLE_ID_PASSWORD != '' && secrets.AC_PROVIDER != ''
 
     steps:
       - name: Checkout code

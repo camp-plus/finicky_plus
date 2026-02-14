@@ -136,24 +136,41 @@ jobs:
   sign-and-notarize:
     runs-on: macos-latest
     needs: create-universal-binary
-    if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main' && secrets.SIGNING_CERTIFICATE_P12_DATA != '' && secrets.SIGNING_CERTIFICATE_PASSWORD != '' && secrets.APPLE_ID_USERNAME != '' && secrets.APPLE_ID_PASSWORD != '' && secrets.AC_PROVIDER != ''
+    if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
 
     steps:
+      - name: Check signing secrets
+        id: signing-secrets
+        run: |
+          if [ -z "${{ secrets.SIGNING_CERTIFICATE_P12_DATA }}" ] || \
+             [ -z "${{ secrets.SIGNING_CERTIFICATE_PASSWORD }}" ] || \
+             [ -z "${{ secrets.APPLE_ID_USERNAME }}" ] || \
+             [ -z "${{ secrets.APPLE_ID_PASSWORD }}" ] || \
+             [ -z "${{ secrets.AC_PROVIDER }}" ]; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Checkout code
+        if: steps.signing-secrets.outputs.skip != 'true'
         uses: actions/checkout@v4
 
       - name: Download universal binary
+        if: steps.signing-secrets.outputs.skip != 'true'
         uses: actions/download-artifact@v4
         with:
           name: Finicky-universal
           path: ./universal
 
       - name: Extract universal binary
+        if: steps.signing-secrets.outputs.skip != 'true'
         run: |
           cd universal
           tar -xzf Finicky-universal.tar.gz
 
       - name: Import signing certificate
+        if: steps.signing-secrets.outputs.skip != 'true'
         env:
           SIGNING_CERTIFICATE_P12_DATA: ${{ secrets.SIGNING_CERTIFICATE_P12_DATA }}
           SIGNING_CERTIFICATE_PASSWORD: ${{ secrets.SIGNING_CERTIFICATE_PASSWORD }}
@@ -174,10 +191,12 @@ jobs:
           rm certificate.p12
 
       - name: Install gon
+        if: steps.signing-secrets.outputs.skip != 'true'
         run: |
           brew install Bearer/tap/gon
 
       - name: Update gon config for CI
+        if: steps.signing-secrets.outputs.skip != 'true'
         run: |
           # Create the directory structure expected by the existing gon config
           mkdir -p apps/finicky/build
@@ -185,6 +204,7 @@ jobs:
           cp -r universal/Finicky.app apps/finicky/build/Finicky.app
 
       - name: Sign and notarize
+        if: steps.signing-secrets.outputs.skip != 'true'
         env:
           AC_USERNAME: ${{ secrets.APPLE_ID_USERNAME }}
           AC_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
@@ -194,6 +214,7 @@ jobs:
           gon scripts/gon-config.json
 
       - name: Upload signed DMG
+        if: steps.signing-secrets.outputs.skip != 'true'
         uses: actions/upload-artifact@v4
         with:
           name: Finicky-signed-dmg

@@ -1,20 +1,44 @@
 name: Build Finicky
-on: [push]
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
 
 jobs:
   build:
     runs-on: macos-latest
+    
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-go@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Go
+        uses: actions/setup-go@v5
         with:
           go-version: '1.23.4'
-      - uses: actions/setup-node@v3
+      
+      - name: Setup Node
+        uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - run: ./scripts/install.sh
-      - run: ./scripts/build.sh
-      - uses: actions/upload-artifact@v3
+      
+      - name: Install dependencies
+        run: ./scripts/install.sh
+      
+      - name: Build Finicky
+        run: ./scripts/build.sh
+      
+      - name: List build outputs
+        run: |
+          echo "Searching for Finicky.app..."
+          find . -name "Finicky.app" -type d
+      
+      - name: Upload Finicky.app
+        uses: actions/upload-artifact@v4
         with:
-          name: finicky-app
-          path: apps/Finicky/build/Build/Products/Release/Finicky.app
+          name: Finicky-with-ASWebAuth
+          path: "**/*.app"
+          retention-days: 30

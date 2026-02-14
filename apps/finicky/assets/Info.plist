@@ -76,5 +76,10 @@
     <array>
       <string>NSUserActivityTypeBrowsingWeb</string>
     </array>
+    <key>ASWebAuthenticationSessionWebBrowserSupportCapabilities</key>
+    <dict>
+      <key>EphemeralBrowserSessionIsSupported</key>
+      <true/>
+    </dict>
   </dict>
 </plist>

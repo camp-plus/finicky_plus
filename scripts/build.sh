@@ -46,8 +46,22 @@ fi
     API_HOST=$(cat .env | grep API_HOST | cut -d '=' -f 2)
 
 
-    export CGO_CFLAGS="-mmacosx-version-min=12.0"
-    export CGO_LDFLAGS="-mmacosx-version-min=12.0"
+    ARCH_FLAG=""
+    if [ -n "$BUILD_TARGET_ARCH" ]; then
+        case "$BUILD_TARGET_ARCH" in
+            amd64)
+                export GOARCH="amd64"
+                ARCH_FLAG="-arch x86_64"
+                ;;
+            arm64)
+                export GOARCH="arm64"
+                ARCH_FLAG="-arch arm64"
+                ;;
+        esac
+    fi
+
+    export CGO_CFLAGS="-mmacosx-version-min=12.0 ${ARCH_FLAG}"
+    export CGO_LDFLAGS="-mmacosx-version-min=12.0 ${ARCH_FLAG}"
 
     cd apps/finicky
     mkdir -p build/${APP_NAME}/Contents/MacOS
